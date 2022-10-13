@@ -85,6 +85,7 @@ using .DataUtils: loadsensordata_sciml, Il_obj, sciml_pred_il_plot, create_predi
 
 meas_path = "/home/edudiro/repo/testproject/RealWorld/Data/measurements_not_processed.csv"
 meas_path2 = "/home/edudiro/repo/testproject/RealWorld/Data/measurements_processed.csv"
+meas_path2 = "real-world-case/data/measurements_processed.csv"
 
 # ------------------------------------------------------
 # SETTINGS & CONTROL
@@ -213,7 +214,7 @@ all_sensor_names = collect(keys(sensor_info)) |> sort! |> x -> circshift(x, -1)
 all_sensor_positions = [sensor_info[sensor_name] for sensor_name in all_sensor_names]
 
 # Data sensor name and position
-data_sensor_names = ["H1_S", "H3_S", "H5_S", "H8_S"]
+data_sensor_names = ["H1_S", "H4_S", "H8_S", "H9_S"]
 
 data_sensor_positions = [sensor_info[sensor_name] for sensor_name in data_sensor_names]
 
@@ -881,7 +882,7 @@ plot!(meas_xs_less, all_data_l_meas_stress_il_less[1])
 :tracker
 #:forwarddiff
 chain_bsciml = sample(infer_model_bsciml_realworld, NUTS(0.65), 1000)
-write("RealWorld/Results/alt_model/H1358-38points-500p-2inputs-100*std.jls", chain_bsciml)
+write("real-world-case/results/2inputSciML/H1489-38points-500p-2inputs-100*std.jls", chain_bsciml)
 
 # Prediction model
 #chain_bsciml = read("RealWorld/Results/alt_model/H1-38points-500p-2inputs-100*std.jls", Chains)
