@@ -75,8 +75,7 @@ using .FieldTest: Truck, TruckName, RightTruck, LeftTruck
 include("DataPlotting.jl")
 using .DataUtils: loadsensordata, Il_obj, dd_pred_il_plot
 
-meas_path = "/home/edudiro/repo/testproject/RealWorld/Data/measurements_processed.csv"
-
+meas_path2 = "real-world-case/data/measurements_processed.csv"
 # ------------------------------------------------------
 # SETTINGS & CONTROL
 # ------------------------------------------------------
@@ -95,7 +94,7 @@ sensor_info = Dict("H1_S" =>20.42, "H2_S" =>34.82, "H3_S" =>47.700, "H4_S" =>61.
 
 
 # Data sensor name and position
-data_sensor_names = ["H1_S"]#, "H3_S", "H5_S", "H8_S"]#, "H5_S", "H8_S", "H9_S", "H10_S"]
+data_sensor_names = ["H1_S", "H4_S", "H8_S", "H9_S"]#, "H5_S", "H8_S", "H9_S", "H10_S"]
 data_sensor_positions = [sensor_info[sensor_name] for sensor_name in data_sensor_names]
 
 # Predicted sensor name and position
@@ -142,7 +141,7 @@ all_r_meas_stress_il = Any[]
 all_l_meas_stress_il = Any[]
 
 for name in (data_sensor_names)
-    (right_meas_stress_il, left_meas_stress_il) = loadsensordata(name, meas_path, girder)
+    (right_meas_stress_il, left_meas_stress_il) = loadsensordata(name, meas_path2, girder)
     push!(all_r_meas_stress_il, right_meas_stress_il)
     push!(all_l_meas_stress_il, left_meas_stress_il)
 end
@@ -286,13 +285,13 @@ mle_model = optimize(infer_model_bnn_realworld, MLE())
 mle_params = mle_model.values.array
 
 mle_pred = plot(node_xs_less, dd_stress_il_from_truck.(node_xs_less, z_truck[1], data_sensor_positions[1],[mle_params]))
-plot!(node_xs, meas_stress_il_matrix[:,2,1])
+plot!(node_xs, meas_stress_il_matrix[:,1,1])
 #= append!(res.minimizer,0.05*5000) =#
 
 chain_bnn = sample(infer_model_bnn_realworld, NUTS(.65), 1000, init_params = [mle_params])
 
-write("RealWorld/Results/Document/H1-bnn-33points-500p.jls", chain_bnn)
-#chain_bnn = read("RealWorld/Results/First_versions/4sensors_chain_bnn_33_nodes.jls", Chains)
+#write("real-woeld-case/H1489-bnn-33points-500p.jls", chain_bnn)
+chain_bnn = read("real-world-case/H1489-bnn-33points-500p.jls", Chains)
 
 test_model_bnn_realworld = bayesian_dd_realworld(missing, node_xs_less, z_truck, data_sensor_positions);
 

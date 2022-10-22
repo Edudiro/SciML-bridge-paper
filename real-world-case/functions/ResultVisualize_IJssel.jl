@@ -36,7 +36,7 @@ include("DataPlotting.jl")
 using .DataUtils: loadsensordata_sciml,loadsensordata, Il_obj, sciml_pred_il_plot, create_prediction_error_plot,
     multi_scale, findall_signchange
 
-meas_path2 = "/home/edudiro/repo/testproject/RealWorld/Data/measurements_processed.csv"
+meas_path2 = "real-world-case/data/measurements_processed.csv"
 
 
 # ------------------------------------------------------
@@ -54,12 +54,12 @@ E = 210e6
 
 #BSciML
 using DelimitedFiles
-chain_bsciml = read("RealWorld/Results/Document/H1489_500p.jls", Chains)
-x_RHDHV = readdlm("/home/edudiro/repo/testproject/RealWorld/Data/x_RHDHV")
+chain_bsciml = read("real-world-case/H1489-38points-500p-2input.jls", Chains)
+x_RHDHV = readdlm("real-world-case/data/x_RHDHV")
 preds_RHDHV = zeros(length(x_RHDHV[:,1]),2,9)
 for i = 1:9
 
-    preds_RHDHV[:,:,i] = reshape(readdlm("/home/edudiro/repo/testproject/RealWorld/Data/RHDHV_sensor:$i"),:,2)
+    preds_RHDHV[:,:,i] = reshape(readdlm("real-world-case/data/RHDHV_sensor$i"),:,2)
 
 end
 
@@ -307,13 +307,13 @@ function sciml_get_mse(p, _truck_name, sensor_positions, meas)
 
     if _truck_name == RightTruck
         for i = 1:len
-            pred_il = stress_il_from_truck_3(p, stress_il_less[i],node_xs_less, meas, data_sensor_positions[i]; truck_name=_truck_name)
+            pred_il = stress_il_from_truck_2(p, stress_il_less[i],node_xs_less, meas; truck_name=_truck_name)
             mse += mean(abs2.(pred_il .- (all_data_r_meas_stress_il_less[i])))
 
         end
     elseif _truck_name == LeftTruck
         for i = 1:len
-            pred_il = stress_il_from_truck_3(p, stress_il_less[i],node_xs_less, meas, data_sensor_positions[i]; truck_name=_truck_name)
+            pred_il = stress_il_from_truck_2(p, stress_il_less[i],node_xs_less, meas; truck_name=_truck_name)
             mse += mean(abs2.(pred_il .- (all_data_l_meas_stress_il_less[i])))
         end
     end
@@ -403,13 +403,13 @@ function loss(p) # choose mse, mle or map
     return total_loss
 end
 
-loss(p_init3)
+loss(p_init2)
 
 # ------------------------------------------------------
 # FIT NEURAL NETWORK
 # ------------------------------------------------------
-max_iters = 400
-@time res = sciml_train(loss, p_init3,
+max_iters = 200
+@time res = sciml_train(loss, p_init2,
     ADAM(0.05), maxiters=max_iters, save_best=true, cb=callback)
 
 # refine with a lower learning rate
@@ -419,8 +419,8 @@ res = sciml_train(loss, res.minimizer,
 p_sciml = res.minimizer
 #p_scimlmap = res.minimizer
 
-right_pred_stress_il = stress_il_from_truck_3(p_sciml, all_stress_il[6],node_xs, meas_xs, all_sensor_positions[6]; truck_name=RightTruck)
-left_pred_stress_il = stress_il_from_truck_3(p_sciml, all_stress_il[6],node_xs, meas_xs, all_sensor_positions[6]; truck_name=LeftTruck)
+right_pred_stress_il = stress_il_from_truck_2(p_sciml, all_stress_il[7],node_xs, meas_xs; truck_name=RightTruck)
+left_pred_stress_il = stress_il_from_truck_2(p_sciml, all_stress_il[7],node_xs, meas_xs; truck_name=LeftTruck)
 
 plot(meas_xs,right_pred_stress_il)
 plot!(meas_xs,left_pred_stress_il)
@@ -672,7 +672,7 @@ end
 
 end
 
-test_model_bsciml_realworld = bayesian_sciml_realworld_3(missing, meas_xs, right_wheel_il_all, left_wheel_il_all);
+test_model_bsciml_realworld = bayesian_sciml_realworld_2(missing, meas_xs, right_wheel_il_all, left_wheel_il_all);
 bsciml_pred = reshape(Array(predict(test_model_bsciml_realworld, chain_bsciml)), (1000, length(meas_xs), 2, 9))
 bsciml_pred_mean = mean(bsciml_pred, dims=1)
 bsciml_median = median(bsciml_pred, dims = 1)
