@@ -39,7 +39,6 @@ include("CALFEMhelpers.jl")
 include("DevelopInterval.jl")
 include("TrainingFunctionsDataDriven.jl")
 include("TrainingFunctionsSciML.jl")
-include("VisualizeFuncs.jl")
 include("BNN.jl")
 include("InferenceFunctions.jl")
 
@@ -68,7 +67,7 @@ zdim = 20
 zr = range(0, stop = 5, length = zdim)
 
 data_train, noisydata_train, inf_l, ground_truth =
-data_generator([load_lane_locs[1]],[sensor_locs[2],sensor_locs[3],sensor_locs[4],sensor_locs[5],sensor_locs[6], sensor_locs[7], sensor_locs[8],sensor_locs[11],sensor_locs[12],sensor_locs[13],sensor_locs[14],sensor_locs[15],sensor_locs[18], sensor_locs[20],sensor_locs[21],sensor_locs[22], sensor_locs[23], sensor_locs[24]], zdim, steps);
+data_generator([load_lane_locs[1]],[sensor_locs[13]], zdim, steps);
 plot(noisydata_train[:,1,1])
 
 
@@ -79,21 +78,21 @@ plot(noisydata_train[:,1,1])
 
 #NN training
 
-nn_params = trainsystemDD([load_lane_locs[2],load_lane_locs[4]], [sensor_locs[2],sensor_locs[7],sensor_locs[13],sensor_locs[19],sensor_locs[24]], noisydata_train, zdim)
-save("Results/Case 8.2/nn_params.jld", "nn_params", nn_params)
+nn_params = trainsystemDD([load_lane_locs[1]], [sensor_locs[13]], noisydata_train, zdim)
+#save("Results/Case 8.2/nn_params.jld", "nn_params", nn_params)
 
 #SCIML NN training
-sciml_params = trainsystemSciML([load_lane_locs[2],load_lane_locs[4]], [sensor_locs[2],sensor_locs[7],sensor_locs[13],sensor_locs[19],sensor_locs[24]], noisydata_train, zdim)
-save("Results/Case 8.2/sciml_params.jld", "sciml_params", sciml_params)
+sciml_params = trainsystemSciML([load_lane_locs[1]], [sensor_locs[13]], noisydata_train, zdim)
+#save("Results/Case 8.2/sciml_params.jld", "sciml_params", sciml_params)
 
 
 #INFERENCE
 num_samples = 1000
 
 #Call models
-infer_model_sciml = bayesian_sciml(noisydata_train[:], sensor_locs, [load_lane_locs[1]],[sensor_locs[2],sensor_locs[3],sensor_locs[4],sensor_locs[5],sensor_locs[6], sensor_locs[7], sensor_locs[8],sensor_locs[11],sensor_locs[12],sensor_locs[13],sensor_locs[14],sensor_locs[15],sensor_locs[18], sensor_locs[20],sensor_locs[21],sensor_locs[22], sensor_locs[23], sensor_locs[24]], num_params, inf_l);
+infer_model_sciml = bayesian_sciml(noisydata_train[:], sensor_locs, [load_lane_locs[1]],[sensor_locs[13]], num_params, inf_l);
 
-infer_model_bnn = bayesian_dd(100 .* noisydata_train[:],sensor_locs,[load_lane_locs[1]],[sensor_locs[4],sensor_locs[13]]);
+infer_model_bnn = bayesian_dd(100 .* noisydata_train[:],sensor_locs,[load_lane_locs[1]],[sensor_locs[13]]);
 
 #MLE for sciml
 begin
@@ -112,12 +111,12 @@ end
 
 #Perform sampling.
 chain_sciml = sample(infer_model_sciml, NUTS(.65), num_samples, init_params = mle_params)
-#chain_bnn = sample(infer_model_bnn, NUTS(.65), num_samples)
+chain_bnn = sample(infer_model_bnn, NUTS(.65), num_samples)
 
 #Save
-write("Results/Accuracy_comparison/18_sensors/chain_sciml.jls", chain_sciml)
+#write("Results/Accuracy_comparison/18_sensors/chain_sciml.jls", chain_sciml)
 #write("Results/Accuracy_comparison/2_sensors/chain_bnn.jls", chain_bnn)
-print("saved chains")
+#print("saved chains")
 
 ## PREDICTIONS
 
